@@ -743,60 +743,51 @@ function ProjectsPage({projects,setProjects,members,setMembers,saving}){
 // ── LOGIN PAGE ───────────────────────────────────────────────────────────────
 function LoginPage(){
   const e=React.createElement;
-  const[email,setEmail]=useState("");
-  const[sent,setSent]=useState(false);
   const[loading,setLoading]=useState(false);
   const[error,setError]=useState("");
 
-  async function sendMagicLink(){
-    if(!email.trim())return;
+  async function signInWithGoogle(){
     setLoading(true);setError("");
-    const{error:err}=await supabase.auth.signInWithOtp({
-      email:email.trim(),
+    const{error:err}=await supabase.auth.signInWithOAuth({
+      provider:"google",
       options:{
-        emailRedirectTo:window.location.origin,
-        shouldCreateUser:true,
-        data:{session_duration:432000}
+        redirectTo:window.location.href.split("#")[0].split("?")[0]
       }
     });
     if(err){setError(err.message);setLoading(false);}
-    else{setSent(true);setLoading(false);}
   }
 
   return e("div",{style:{minHeight:"100vh",background:"#f7f5f0",display:"flex",alignItems:"center",justifyContent:"center",padding:20}},
-    e("div",{style:{background:"#fff",borderRadius:20,padding:"48px 40px",maxWidth:420,width:"100%",border:"1px solid #e5e0d8",boxShadow:"0 4px 24px rgba(0,0,0,0.06)"}},
-      e("div",{style:{textAlign:"center",marginBottom:36}},
-        e("img",{src:"favicon.png",style:{width:56,height:56,borderRadius:12,marginBottom:16},onError:ev=>ev.target.style.display="none"}),
+    e("div",{style:{background:"#fff",borderRadius:20,padding:"48px 40px",maxWidth:400,width:"100%",border:"1px solid #e5e0d8",boxShadow:"0 4px 24px rgba(0,0,0,0.06)"}},
+      e("div",{style:{textAlign:"center",marginBottom:40}},
+        e("img",{src:"favicon.png",style:{width:60,height:60,borderRadius:14,marginBottom:16},onError:ev=>ev.target.style.display="none"}),
         e("div",{style:{fontSize:11,letterSpacing:3,textTransform:"uppercase",color:"#9ca3af",marginBottom:6}},"Manager's"),
         e("div",{style:{fontSize:28,fontWeight:"bold",color:"#1a1a2e",marginBottom:8}},"Team Tracker"),
         e("div",{style:{fontSize:14,color:"#9ca3af"}},"Sign in to access your workspace")
       ),
-      sent?e("div",{style:{textAlign:"center"}},
-        e("div",{style:{fontSize:48,marginBottom:16}},"📬"),
-        e("div",{style:{fontSize:18,fontWeight:700,color:"#1a1a2e",marginBottom:8}},"Check your email"),
-        e("div",{style:{fontSize:14,color:"#6b7280",lineHeight:1.6,marginBottom:24}},"We sent a magic link to ",e("strong",null,email),". Click it to sign in — the link is valid for 24 hours and your session will last 5 days."),
-        e("button",{onClick:()=>setSent(false),style:{background:"none",border:"none",color:"#6366f1",fontSize:13,cursor:"pointer",textDecoration:"underline"}},"Use a different email")
-      ):e("div",null,
-        e("div",{style:{marginBottom:16}},
-          e("div",{style:{fontSize:12,color:"#6b7280",marginBottom:6,fontWeight:600}},"Your email address"),
-          e("input",{
-            type:"email",
-            value:email,
-            onChange:ev=>setEmail(ev.target.value),
-            onKeyDown:ev=>ev.key==="Enter"&&sendMagicLink(),
-            placeholder:"you@company.com",
-            autoFocus:true,
-            style:{width:"100%",padding:"12px 14px",borderRadius:10,border:"1px solid #e5e0d8",background:"#fafaf8",color:"#1a1a2e",fontSize:15,outline:"none",boxSizing:"border-box"}
-          })
+      e("button",{
+        onClick:signInWithGoogle,
+        disabled:loading,
+        style:{
+          width:"100%",padding:"13px 20px",borderRadius:10,border:"1px solid #e5e0d8",
+          background:loading?"#f9fafb":"#fff",color:"#374151",fontSize:15,fontWeight:600,
+          cursor:loading?"not-allowed":"pointer",display:"flex",alignItems:"center",
+          justifyContent:"center",gap:12,transition:"all 0.15s",
+          boxShadow:"0 1px 3px rgba(0,0,0,0.08)"
+        }
+      },
+        // Google logo SVG
+        e("svg",{width:20,height:20,viewBox:"0 0 48 48"},
+          e("path",{fill:"#EA4335",d:"M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"}),
+          e("path",{fill:"#4285F4",d:"M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"}),
+          e("path",{fill:"#FBBC05",d:"M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"}),
+          e("path",{fill:"#34A853",d:"M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"}),
+          e("path",{fill:"none",d:"M0 0h48v48H0z"})
         ),
-        e("button",{
-          onClick:sendMagicLink,
-          disabled:loading||!email.trim(),
-          style:{width:"100%",padding:"13px",borderRadius:10,border:"none",background:loading||!email.trim()?"#c7d2fe":"#6366f1",color:"#fff",fontSize:15,fontWeight:700,cursor:loading||!email.trim()?"not-allowed":"pointer",transition:"background 0.15s"}
-        },loading?"Sending…":"Send Magic Link ✦"),
-        error&&e("div",{style:{marginTop:12,fontSize:13,color:"#b91c1c",background:"#fee2e2",padding:"8px 12px",borderRadius:8}},error),
-        e("div",{style:{marginTop:20,fontSize:12,color:"#9ca3af",textAlign:"center",lineHeight:1.6}},"No password needed. We'll email you a secure link that signs you in for 5 days.")
-      )
+        loading?"Signing in…":"Sign in with Google"
+      ),
+      error&&e("div",{style:{marginTop:16,fontSize:13,color:"#b91c1c",background:"#fee2e2",padding:"10px 14px",borderRadius:8,textAlign:"center"}},error),
+      e("div",{style:{marginTop:24,fontSize:12,color:"#9ca3af",textAlign:"center",lineHeight:1.6}},"Your session stays active for 7 days after signing in.")
     )
   );
 }
@@ -1035,20 +1026,14 @@ function App(){
   const projSaveTimer=useRef(null);
 
   useEffect(()=>{
-    // onAuthStateChange fires immediately with current session
-    // AND catches the magic link token from URL hash automatically
     const{data:{subscription}}=supabase.auth.onAuthStateChange((event,session)=>{
-      console.log("Auth event:",event,"session:",session?.user?.email);
       setSession(session??null);
-      if(session&&window.location.hash.includes("access_token")){
+      if(session&&(window.location.hash||window.location.search)){
         window.history.replaceState(null,"",window.location.pathname);
       }
     });
-    // Also check existing session
     supabase.auth.getSession().then(({data:{session}})=>{
-      console.log("Existing session:",session?.user?.email);
-      if(session)setSession(session);
-      else if(!window.location.hash.includes("access_token"))setSession(null);
+      setSession(session??null);
     });
     return()=>subscription.unsubscribe();
   },[]);
@@ -1190,7 +1175,7 @@ function App(){
       projects,
       setMembers,
       memberId:linkedMember.id,
-      onSignOut:()=>supabase.auth.signOut()
+      onSignOut:async()=>{await supabase.auth.signOut();window.location.reload();}
     });
   }
 
@@ -1216,7 +1201,7 @@ function App(){
             e("div",{style:{width:7,height:7,borderRadius:"50%",background:cloudError?"#ef4444":saving?"#f59e0b":"#10b981",flexShrink:0}}),
             e("div",{style:{fontSize:11,color:cloudError?"#f87171":saving?"#fbbf24":"#6ee7b7"}},cloudError?"Cloud error":saving?"Saving…":"Synced ✓")
           ),
-          e("button",{onClick:()=>supabase.auth.signOut(),style:{fontSize:10,color:"#6b6b8a",background:"none",border:"1px solid #2a2a44",borderRadius:4,padding:"2px 7px",cursor:"pointer"}},"Sign out")
+          e("button",{onClick:async()=>{await supabase.auth.signOut();window.location.reload();},style:{fontSize:10,color:"#6b6b8a",background:"none",border:"1px solid #2a2a44",borderRadius:4,padding:"2px 7px",cursor:"pointer"}},"Sign out")
         )
       ),
       // Nav
